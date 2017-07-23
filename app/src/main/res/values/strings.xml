@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">StateSwitchLayout</string>
+    <string name="err_retry">Err and retry</string>
+    <string name="empty_nothing">Empty and nothing</string>
+</resources>
