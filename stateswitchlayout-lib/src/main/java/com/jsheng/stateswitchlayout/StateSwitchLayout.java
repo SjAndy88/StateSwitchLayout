@@ -81,24 +81,76 @@ public class StateSwitchLayout extends FrameLayout {
         mErrorClickListener = errorClickListener;
     }
 
+    public void switchToLoading() {
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showLoadingView();
+            }
+        }, 600);
+    }
+
+    /**
+     * @deprecated
+     * pls use {@link #switchToLoading()}
+     */
     public void showLoadingView() {
         goneAllChild();
         getLoadingView().setVisibility(VISIBLE);
         mState = STATE_LOADING;
     }
 
+    public void switchToError() {
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showErrorView();
+            }
+        }, 600);
+    }
+
+    /**
+     * @deprecated
+     * pls use {@link #switchToError()}
+     */
     public void showErrorView() {
         goneAllChild();
         getErrorView().setVisibility(VISIBLE);
         mState = STATE_ERROR;
     }
 
+    public void switchToEmpty() {
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showEmptyView();
+            }
+        }, 600);
+    }
+
+    /**
+     * @deprecated
+     * pls use {@link #switchToEmpty()}
+     */
     public void showEmptyView() {
         goneAllChild();
         getEmptyView().setVisibility(VISIBLE);
         mState = STATE_EMPTY;
     }
 
+    public void switchToSucceed() {
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showSucceedView();
+            }
+        }, 600);
+    }
+
+    /**
+     * @deprecated
+     * pls use {@link #switchToSucceed()}
+     */
     public void showSucceedView() {
         goneAllChild();
         getSucceedView().setVisibility(VISIBLE);
