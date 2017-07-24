@@ -17,10 +17,10 @@ import android.widget.FrameLayout;
 public class StateSwitchLayout extends FrameLayout {
     private static final int LOADING_TIME = 600;
 
-    private static final int INVALID = -1;
+    private static final int INVALID_ID = -1;
 
     // 初始的状态
-    public static final int STATE_INITAIL= 1;
+    public static final int STATE_INITIAL = 1;
     // 加载的状态
     public static final int STATE_LOADING = 1;
     // 加载失败的状态
@@ -45,7 +45,6 @@ public class StateSwitchLayout extends FrameLayout {
     private OnClickListener mErrorClickListener;
 
     private long mTimeLoadingStart;
-    private long mTimeLoadingEnd;
 
     public StateSwitchLayout(@NonNull Context context) {
         super(context);
@@ -62,9 +61,9 @@ public class StateSwitchLayout extends FrameLayout {
         final TypedArray a = context.obtainStyledAttributes(
                 attrs, R.styleable.StateSwitchLayout);
 
-        mLayoutLoading = a.getResourceId(R.styleable.StateSwitchLayout_layoutLoading, INVALID);
-        mLayoutError= a.getResourceId(R.styleable.StateSwitchLayout_layoutError, INVALID);
-        mLayoutEmpty = a.getResourceId(R.styleable.StateSwitchLayout_layoutEmpty, INVALID);
+        mLayoutLoading = a.getResourceId(R.styleable.StateSwitchLayout_layoutLoading, INVALID_ID);
+        mLayoutError = a.getResourceId(R.styleable.StateSwitchLayout_layoutError, INVALID_ID);
+        mLayoutEmpty = a.getResourceId(R.styleable.StateSwitchLayout_layoutEmpty, INVALID_ID);
 
         a.recycle();
 
@@ -74,8 +73,8 @@ public class StateSwitchLayout extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        mState = STATE_INITAIL;
-        mSucceedView = getChildAt(0);
+        mState = STATE_INITIAL;
+        getSucceedView();
     }
 
     public int getState() {
@@ -91,25 +90,19 @@ public class StateSwitchLayout extends FrameLayout {
     }
 
     private long getDelayTime() {
-        mTimeLoadingEnd = System.currentTimeMillis();
-        return LOADING_TIME - (mTimeLoadingEnd - mTimeLoadingStart);
+        long timeLoadingEnd = System.currentTimeMillis();
+        return LOADING_TIME - (timeLoadingEnd - mTimeLoadingStart);
     }
 
     public void switchToLoading() {
-        postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                showLoadingView();
-            }
-        }, 600);
+        showLoadingView();
     }
 
     /**
-     * @deprecated
-     * pls use {@link #switchToLoading()}
+     * @deprecated pls use {@link #switchToLoading()}
      */
     public void showLoadingView() {
-        goneAllChild();
+        hideAllChild();
         getLoadingView().setVisibility(VISIBLE);
         mState = STATE_LOADING;
         setStartTime();
@@ -126,11 +119,10 @@ public class StateSwitchLayout extends FrameLayout {
     }
 
     /**
-     * @deprecated
-     * pls use {@link #switchToError()}
+     * @deprecated pls use {@link #switchToError()}
      */
     public void showErrorView() {
-        goneAllChild();
+        hideAllChild();
         getErrorView().setVisibility(VISIBLE);
         mState = STATE_ERROR;
     }
@@ -146,11 +138,10 @@ public class StateSwitchLayout extends FrameLayout {
     }
 
     /**
-     * @deprecated
-     * pls use {@link #switchToEmpty()}
+     * @deprecated pls use {@link #switchToEmpty()}
      */
     public void showEmptyView() {
-        goneAllChild();
+        hideAllChild();
         getEmptyView().setVisibility(VISIBLE);
         mState = STATE_EMPTY;
     }
@@ -166,34 +157,34 @@ public class StateSwitchLayout extends FrameLayout {
     }
 
     /**
-     * @deprecated
-     * pls use {@link #switchToSucceed()}
+     * @deprecated pls use {@link #switchToSucceed()}
      */
     public void showSucceedView() {
-        goneAllChild();
-        getSucceedView().setVisibility(VISIBLE);
+        hideAllChild();
         mState = STATE_SUCCEED;
+        getSucceedView().setVisibility(VISIBLE);
     }
 
-    private void goneAllChild() {
+    private void hideAllChild() {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
-            child.setVisibility(GONE);
+            child.setVisibility(INVISIBLE);
         }
     }
 
     private View createStateView(int layoutId) {
-        if (layoutId == INVALID) {
+        if (layoutId == INVALID_ID) {
             throw new IllegalArgumentException("createStateView with a invalid layoutId");
         }
         View view = mInflater.inflate(layoutId, this, false);
-        addView(view, generateDefaultLayoutParams());
+        addView(view);
         return view;
     }
 
     private View getLoadingView() {
         if (mLoadingView == null) {
             mLoadingView = createStateView(mLayoutLoading);
+            mLoadingView.setClickable(true);
         }
         return mLoadingView;
     }
@@ -201,6 +192,7 @@ public class StateSwitchLayout extends FrameLayout {
     private View getErrorView() {
         if (mErrorView == null) {
             mErrorView = createStateView(mLayoutError);
+            mLoadingView.setClickable(true);
         }
         if (mErrorClickListener != null) {
             mErrorView.setOnClickListener(mErrorClickListener);
@@ -211,13 +203,17 @@ public class StateSwitchLayout extends FrameLayout {
     private View getEmptyView() {
         if (mEmptyView == null) {
             mEmptyView = createStateView(mLayoutEmpty);
+            mLoadingView.setClickable(true);
         }
         return mEmptyView;
     }
 
     private View getSucceedView() {
         if (mSucceedView == null) {
-            throw new IllegalArgumentException("StateSwitchLayout need a child view at least");
+            mSucceedView = getChildAt(0);
+            if (mSucceedView == null) {
+                throw new IllegalArgumentException("StateSwitchLayout need a child view at least");
+            }
         }
         return mSucceedView;
     }
