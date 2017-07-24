@@ -15,6 +15,8 @@ import android.widget.FrameLayout;
  */
 
 public class StateSwitchLayout extends FrameLayout {
+    private static final int LOADING_TIME = 600;
+
     private static final int INVALID = -1;
 
     // 初始的状态
@@ -41,6 +43,9 @@ public class StateSwitchLayout extends FrameLayout {
     private int mState;// 默认的状态
     private LayoutInflater mInflater;
     private OnClickListener mErrorClickListener;
+
+    private long mTimeLoadingStart;
+    private long mTimeLoadingEnd;
 
     public StateSwitchLayout(@NonNull Context context) {
         super(context);
@@ -81,6 +86,15 @@ public class StateSwitchLayout extends FrameLayout {
         mErrorClickListener = errorClickListener;
     }
 
+    private void setStartTime() {
+        mTimeLoadingStart = System.currentTimeMillis();
+    }
+
+    private long getDelayTime() {
+        mTimeLoadingEnd = System.currentTimeMillis();
+        return LOADING_TIME - (mTimeLoadingEnd - mTimeLoadingStart);
+    }
+
     public void switchToLoading() {
         postDelayed(new Runnable() {
             @Override
@@ -98,15 +112,17 @@ public class StateSwitchLayout extends FrameLayout {
         goneAllChild();
         getLoadingView().setVisibility(VISIBLE);
         mState = STATE_LOADING;
+        setStartTime();
     }
 
     public void switchToError() {
+        long delayTime = getDelayTime();
         postDelayed(new Runnable() {
             @Override
             public void run() {
                 showErrorView();
             }
-        }, 600);
+        }, delayTime > 0 ? delayTime : 0);
     }
 
     /**
@@ -120,12 +136,13 @@ public class StateSwitchLayout extends FrameLayout {
     }
 
     public void switchToEmpty() {
+        long delayTime = getDelayTime();
         postDelayed(new Runnable() {
             @Override
             public void run() {
                 showEmptyView();
             }
-        }, 600);
+        }, delayTime > 0 ? delayTime : 0);
     }
 
     /**
@@ -139,12 +156,13 @@ public class StateSwitchLayout extends FrameLayout {
     }
 
     public void switchToSucceed() {
+        long delayTime = getDelayTime();
         postDelayed(new Runnable() {
             @Override
             public void run() {
                 showSucceedView();
             }
-        }, 600);
+        }, delayTime > 0 ? delayTime : 0);
     }
 
     /**

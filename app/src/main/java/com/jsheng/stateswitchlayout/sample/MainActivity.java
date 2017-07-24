@@ -1,7 +1,8 @@
 package com.jsheng.stateswitchlayout.sample;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 
 import com.jsheng.stateswitchlayout.StateSwitchLayout;
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         loadingToError();
                     }
-                }, 3000);
+                }, 300);
             }
         }, 3000);
     }
@@ -67,8 +68,9 @@ public class MainActivity extends AppCompatActivity {
         mStateSwitchLayout.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mStateSwitchLayout.showSucceedView();
+                mStateSwitchLayout.switchToSucceed();
             }
-        }, 3000);
+        }, 1);
+        Log.d("J.Sheng", System.currentTimeMillis() + "");
     }
 }
