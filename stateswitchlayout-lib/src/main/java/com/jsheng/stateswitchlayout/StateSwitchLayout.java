@@ -20,7 +20,7 @@ public class StateSwitchLayout extends FrameLayout {
     private static final int INVALID_ID = -1;
 
     // 初始的状态
-    public static final int STATE_INITIAL = 1;
+    public static final int STATE_INITIAL = 0;
     // 加载的状态
     public static final int STATE_LOADING = 1;
     // 加载失败的状态
@@ -102,7 +102,7 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToLoading()}
      */
     public void showLoadingView() {
-        hideAllChild();
+        hideAllChild(mLoadingView);
         getLoadingView().setVisibility(VISIBLE);
         mState = STATE_LOADING;
         setStartTime();
@@ -122,7 +122,7 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToError()}
      */
     public void showErrorView() {
-        hideAllChild();
+        hideAllChild(mErrorView);
         getErrorView().setVisibility(VISIBLE);
         mState = STATE_ERROR;
     }
@@ -141,7 +141,7 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToEmpty()}
      */
     public void showEmptyView() {
-        hideAllChild();
+        hideAllChild(mEmptyView);
         getEmptyView().setVisibility(VISIBLE);
         mState = STATE_EMPTY;
     }
@@ -160,15 +160,17 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToSucceed()}
      */
     public void showSucceedView() {
-        hideAllChild();
+        hideAllChild(mSucceedView);
         mState = STATE_SUCCEED;
         getSucceedView().setVisibility(VISIBLE);
     }
 
-    private void hideAllChild() {
+    private void hideAllChild(View exceptView) {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
-            child.setVisibility(INVISIBLE);
+            if (child != exceptView) {
+                child.setVisibility(INVISIBLE);
+            }
         }
     }
 
