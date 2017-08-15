@@ -9,6 +9,7 @@
         android:layout_height="wrap_content"
         android:textSize="32sp"
         android:text="@string/empty_nothing"
+        android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"/>
 
 </RelativeLayout>

@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mStateSwitchLayout = (StateSwitchLayout) findViewById(R.id.state_switch_layout);
-        mStateSwitchLayout.setErrorClickListener(new View.OnClickListener() {
+        mStateSwitchLayout.setErrorClickListener(R.id.error1, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 loadingToSuccess();

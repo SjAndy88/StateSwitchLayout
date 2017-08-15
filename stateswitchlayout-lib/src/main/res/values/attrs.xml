@@ -20,6 +20,12 @@
         <attr name="layoutLoading" format="integer"/>
         <attr name="layoutError" format="integer"/>
         <attr name="layoutEmpty" format="integer"/>
+
+        <attr name="loadingWithCont" format="boolean"/>
+        <attr name="errorWithCont" format="boolean"/>
+        <attr name="emptyWithCont" format="boolean"/>
+
+        <attr name="loadingTime" format="integer"/>
     </declare-styleable>
 
 </resources>

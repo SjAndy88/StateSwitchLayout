@@ -23,28 +23,36 @@ public class StateSwitchLayout extends FrameLayout {
     public static final int STATE_INITIAL = 0;
     // 加载的状态
     public static final int STATE_LOADING = 1;
-    // 加载失败的状态
+    // 失败的状态
     public static final int STATE_ERROR = 2;
-    // 加载空的状态
+    // 空载的状态
     public static final int STATE_EMPTY = 3;
-    // 加载成功的状态
+    // 成功的状态
     public static final int STATE_SUCCEED = 4;
 
-    private View mLoadingView;// 转圈的view
-    private View mErrorView;// 错误的view
-    private View mEmptyView;// 空的view
-    private View mSucceedView;// 成功的view
+    protected View mLoadingView;// 加载的view
+    protected View mErrorView;// 错误的view
+    protected View mEmptyView;// 空载的view
+    protected View mSucceedView;// 成功的view
 
-    private int mLayoutLoading;
-    private int mLayoutError;
-    private int mLayoutEmpty;
+    protected int mLayoutLoading;
+    protected int mLayoutError;
+    protected int mLayoutEmpty;
 
+    protected boolean mLoadingWithContent;
+    protected boolean mErrorWithContent;
+    protected boolean mEmptyWithContent;
 
-    private int mState;// 默认的状态
-    private LayoutInflater mInflater;
-    private OnClickListener mErrorClickListener;
+    protected int mState;// 默认的状态
+    protected LayoutInflater mInflater;
 
-    private long mTimeLoadingStart;
+    protected int mErrorClickId;
+    protected int mEmptyClickId;
+    protected OnClickListener mErrorClickListener;
+    protected OnClickListener mEmptyClickListener;
+
+    protected long mTimeLoadingStart;
+    protected long mTimeLoadingTotal;
 
     public StateSwitchLayout(@NonNull Context context) {
         super(context);
@@ -65,14 +73,26 @@ public class StateSwitchLayout extends FrameLayout {
         mLayoutError = a.getResourceId(R.styleable.StateSwitchLayout_layoutError, INVALID_ID);
         mLayoutEmpty = a.getResourceId(R.styleable.StateSwitchLayout_layoutEmpty, INVALID_ID);
 
+        mLoadingWithContent = a.getBoolean(R.styleable.StateSwitchLayout_loadingWithCont, false);
+        mErrorWithContent = a.getBoolean(R.styleable.StateSwitchLayout_errorWithCont, false);
+        mEmptyWithContent = a.getBoolean(R.styleable.StateSwitchLayout_emptyWithCont, false);
+
+        mTimeLoadingTotal = a.getInteger(R.styleable.StateSwitchLayout_loadingTime, LOADING_TIME);
+
         a.recycle();
 
         mInflater = LayoutInflater.from(getContext());
+
+        mErrorClickId = INVALID_ID;
+        mEmptyClickId = INVALID_ID;
     }
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        if (getChildCount() != 1) {
+            throw new IllegalStateException("ScrollView can host only one direct child");
+        }
         mState = STATE_INITIAL;
         getSucceedView();
     }
@@ -85,13 +105,27 @@ public class StateSwitchLayout extends FrameLayout {
         mErrorClickListener = errorClickListener;
     }
 
+    public void setEmtpyClickListener(OnClickListener emptyClickListener) {
+        mEmptyClickListener = emptyClickListener;
+    }
+
+    public void setErrorClickListener(int errorClickResId, OnClickListener errorClickListener) {
+        mErrorClickId = errorClickResId;
+        mErrorClickListener = errorClickListener;
+    }
+
+    public void setEmtpyClickListener(int emptyClickResId, OnClickListener emptyClickListener) {
+        mEmptyClickId = emptyClickResId;
+        mEmptyClickListener = emptyClickListener;
+    }
+
     private void setStartTime() {
         mTimeLoadingStart = System.currentTimeMillis();
     }
 
     private long getDelayTime() {
         long timeLoadingEnd = System.currentTimeMillis();
-        return LOADING_TIME - (timeLoadingEnd - mTimeLoadingStart);
+        return mTimeLoadingTotal - (timeLoadingEnd - mTimeLoadingStart);
     }
 
     public void switchToLoading() {
@@ -102,7 +136,11 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToLoading()}
      */
     public void showLoadingView() {
-        hideAllChild(mLoadingView);
+        if (mLoadingWithContent) {
+            hideAllChild(mLoadingView, mSucceedView);
+        } else {
+            hideAllChild(mLoadingView);
+        }
         getLoadingView().setVisibility(VISIBLE);
         mState = STATE_LOADING;
         setStartTime();
@@ -122,7 +160,11 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToError()}
      */
     public void showErrorView() {
-        hideAllChild(mErrorView);
+        if (mErrorWithContent) {
+            hideAllChild(mErrorView, mSucceedView);
+        } else {
+            hideAllChild(mErrorView);
+        }
         getErrorView().setVisibility(VISIBLE);
         mState = STATE_ERROR;
     }
@@ -141,7 +183,11 @@ public class StateSwitchLayout extends FrameLayout {
      * @deprecated pls use {@link #switchToEmpty()}
      */
     public void showEmptyView() {
-        hideAllChild(mEmptyView);
+        if (mEmptyWithContent) {
+            hideAllChild(mEmptyView, mSucceedView);
+        } else {
+            hideAllChild(mEmptyView);
+        }
         getEmptyView().setVisibility(VISIBLE);
         mState = STATE_EMPTY;
     }
@@ -165,27 +211,37 @@ public class StateSwitchLayout extends FrameLayout {
         getSucceedView().setVisibility(VISIBLE);
     }
 
-    private void hideAllChild(View exceptView) {
+    private void hideAllChild(View ...exceptViews) {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
-            if (child != exceptView) {
-                child.setVisibility(INVISIBLE);
+            boolean needHide = true;
+            for (View exceptView : exceptViews) {
+                if (child == exceptView) {
+                    needHide = false;
+                    break;
+                }
             }
+            child.setVisibility(needHide ? INVISIBLE : VISIBLE);
         }
     }
 
-    private View createStateView(int layoutId) {
+    /**
+     * @param layoutId
+     * @param addToLast true，则在内容界面之上；false，则在内容界面之下
+     */
+    private View createStateView(int layoutId, boolean addToLast) {
         if (layoutId == INVALID_ID) {
             throw new IllegalArgumentException("createStateView with a invalid layoutId");
         }
         View view = mInflater.inflate(layoutId, this, false);
-        addView(view);
+        addView(view, addToLast ? -1 : 0);
         return view;
     }
 
     private View getLoadingView() {
         if (mLoadingView == null) {
-            mLoadingView = createStateView(mLayoutLoading);
+            // 显示加载界面的同时显示内容界面，需要加载界面在内容界面之上，此处上下描述的是Z轴
+            mLoadingView = createStateView(mLayoutLoading, mLoadingWithContent);
             mLoadingView.setClickable(true);
         }
         return mLoadingView;
@@ -193,19 +249,28 @@ public class StateSwitchLayout extends FrameLayout {
 
     private View getErrorView() {
         if (mErrorView == null) {
-            mErrorView = createStateView(mLayoutError);
+            // 显示错误界面的同时显示内容界面，需要错误界面在内容界面之下，此处上下描述的是Z轴
+            mErrorView = createStateView(mLayoutError, !mErrorWithContent);
             mLoadingView.setClickable(true);
         }
         if (mErrorClickListener != null) {
-            mErrorView.setOnClickListener(mErrorClickListener);
+            View errorClickView = mErrorClickId == INVALID_ID ?
+                    mErrorView : mErrorView.findViewById(mErrorClickId);
+            errorClickView.setOnClickListener(mErrorClickListener);
         }
         return mErrorView;
     }
 
     private View getEmptyView() {
         if (mEmptyView == null) {
-            mEmptyView = createStateView(mLayoutEmpty);
+            // 显示空白界面的同时显示内容界面，需要空白界面在内容界面之下，此处上下描述的是Z轴
+            mEmptyView = createStateView(mLayoutEmpty, !mEmptyWithContent);
             mLoadingView.setClickable(true);
+        }
+        if (mEmptyClickListener != null) {
+            View emptyClickView = mEmptyClickId == INVALID_ID ?
+                    mEmptyView : mEmptyView.findViewById(mEmptyClickId);
+            emptyClickView.setOnClickListener(mEmptyClickListener);
         }
         return mEmptyView;
     }
@@ -213,9 +278,6 @@ public class StateSwitchLayout extends FrameLayout {
     private View getSucceedView() {
         if (mSucceedView == null) {
             mSucceedView = getChildAt(0);
-            if (mSucceedView == null) {
-                throw new IllegalArgumentException("StateSwitchLayout need a child view at least");
-            }
         }
         return mSucceedView;
     }
