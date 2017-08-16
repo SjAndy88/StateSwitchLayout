@@ -5,8 +5,10 @@ import android.content.res.TypedArray;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -119,6 +121,7 @@ public class StateSwitchLayout extends FrameLayout {
     public boolean isErrorState() {
         return mState == STATE_ERROR;
     }
+
     public boolean isEmptyState() {
         return mState == STATE_EMPTY;
     }
@@ -233,7 +236,7 @@ public class StateSwitchLayout extends FrameLayout {
         getSucceedView().setVisibility(VISIBLE);
     }
 
-    private void hideAllChild(View ...exceptViews) {
+    private void hideAllChild(View... exceptViews) {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             boolean needHide = true;
@@ -262,7 +265,7 @@ public class StateSwitchLayout extends FrameLayout {
 
     public View getLoadingView() {
         if (mLoadingView == null) {
-            // 显示加载界面的同时显示内容界面，需要加载界面在内容界面之上，此处上下描述的是Z轴
+            // 显示加载界面的同时显示内容界面，需要加载界面在内容界面之上，此处上下描述的是Z轴方向
             mLoadingView = createStateView(mLayoutLoading, mLoadingWithContent);
             mLoadingView.setClickable(true);
         }
@@ -271,7 +274,7 @@ public class StateSwitchLayout extends FrameLayout {
 
     public View getErrorView() {
         if (mErrorView == null) {
-            // 显示错误界面的同时显示内容界面，需要错误界面在内容界面之下，此处上下描述的是Z轴
+            // 显示错误界面的同时显示内容界面，需要错误界面在内容界面之下，此处上下描述的是Z轴方向
             mErrorView = createStateView(mLayoutError, !mErrorWithContent);
             mLoadingView.setClickable(true);
         }
@@ -285,7 +288,7 @@ public class StateSwitchLayout extends FrameLayout {
 
     public View getEmptyView() {
         if (mEmptyView == null) {
-            // 显示空白界面的同时显示内容界面，需要空白界面在内容界面之下，此处上下描述的是Z轴
+            // 显示空白界面的同时显示内容界面，需要空白界面在内容界面之下，此处上下描述的是Z轴方向
             mEmptyView = createStateView(mLayoutEmpty, !mEmptyWithContent);
             mLoadingView.setClickable(true);
         }
@@ -302,5 +305,39 @@ public class StateSwitchLayout extends FrameLayout {
             mSucceedView = getChildAt(0);
         }
         return mSucceedView;
+    }
+
+    /**
+     * 将点击事件ev分发给当前显示的View，mErrorView或mEmptyView
+     *
+     * @param ev
+     * @return
+     */
+    public boolean dispatchTouchEventToCurrentView(MotionEvent ev) {
+        switch (mState) {
+            case STATE_ERROR:
+                return mErrorView.dispatchTouchEvent(ev);
+            case STATE_EMPTY:
+                return mEmptyView.dispatchTouchEvent(ev);
+            default:
+                return false;
+
+        }
+    }
+
+    /**
+     * 解决可点击View被RecyclerView覆盖导致无法点击的问题
+     * https://stackoverflow.com/questions/30396075/click-through-recyclerview-empty-space
+     *
+     * @param recyclerView
+     * @return
+     */
+    public void workaroundRecyclerViewEmptyCase(RecyclerView recyclerView) {
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override public boolean onTouch(View v, MotionEvent event) {
+                dispatchTouchEventToCurrentView(event);
+                return false;
+            }
+        });
     }
 }
