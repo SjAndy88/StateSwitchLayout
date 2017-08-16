@@ -97,8 +97,30 @@ public class StateSwitchLayout extends FrameLayout {
         getSucceedView();
     }
 
+    /**
+     * @deprecated pls use {isXxxxState()}
+     */
     public int getState() {
         return mState;
+    }
+
+    public boolean isInitialState() {
+        return mState == STATE_INITIAL;
+    }
+
+    public boolean isLoadingState() {
+        return mState == STATE_LOADING;
+    }
+
+    public boolean isSucceedState() {
+        return mState == STATE_SUCCEED;
+    }
+
+    public boolean isErrorState() {
+        return mState == STATE_ERROR;
+    }
+    public boolean isEmptyState() {
+        return mState == STATE_EMPTY;
     }
 
     public void setErrorClickListener(OnClickListener errorClickListener) {
