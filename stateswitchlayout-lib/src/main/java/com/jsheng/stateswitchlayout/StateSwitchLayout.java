@@ -260,7 +260,7 @@ public class StateSwitchLayout extends FrameLayout {
         return view;
     }
 
-    private View getLoadingView() {
+    public View getLoadingView() {
         if (mLoadingView == null) {
             // 显示加载界面的同时显示内容界面，需要加载界面在内容界面之上，此处上下描述的是Z轴
             mLoadingView = createStateView(mLayoutLoading, mLoadingWithContent);
@@ -269,7 +269,7 @@ public class StateSwitchLayout extends FrameLayout {
         return mLoadingView;
     }
 
-    private View getErrorView() {
+    public View getErrorView() {
         if (mErrorView == null) {
             // 显示错误界面的同时显示内容界面，需要错误界面在内容界面之下，此处上下描述的是Z轴
             mErrorView = createStateView(mLayoutError, !mErrorWithContent);
@@ -283,7 +283,7 @@ public class StateSwitchLayout extends FrameLayout {
         return mErrorView;
     }
 
-    private View getEmptyView() {
+    public View getEmptyView() {
         if (mEmptyView == null) {
             // 显示空白界面的同时显示内容界面，需要空白界面在内容界面之下，此处上下描述的是Z轴
             mEmptyView = createStateView(mLayoutEmpty, !mEmptyWithContent);
@@ -297,7 +297,7 @@ public class StateSwitchLayout extends FrameLayout {
         return mEmptyView;
     }
 
-    private View getSucceedView() {
+    public View getSucceedView() {
         if (mSucceedView == null) {
             mSucceedView = getChildAt(0);
         }
